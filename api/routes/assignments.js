@@ -1,12 +1,28 @@
 let Assignment = require('../model/assignment');
 
+// Récupérer tous les assignments (GET)
 async function getAssignments(req, res) {
   try {
-    const assignments = await Assignment.find();
-    // Convertir chaque objet en JSON, puis les joindre par des virgules
-    const result = assignments.map(a => JSON.stringify(a)).join(',');
-    res.type('application/json'); // préciser le type de réponse
-    res.send(result);
+    // Pagination basique
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const skip = (page - 1) * limit;
+
+    const totalDocs = await Assignment.countDocuments();
+    const assignments = await Assignment.find().skip(skip).limit(limit);
+
+    res.json({
+      docs: assignments,
+      totalDocs: totalDocs,
+      limit: limit,
+      page: page,
+      totalPages: Math.ceil(totalDocs / limit),
+      pagingCounter: skip + 1,
+      hasPrevPage: page > 1,
+      hasNextPage: page < Math.ceil(totalDocs / limit),
+      prevPage: page > 1 ? page - 1 : null,
+      nextPage: page < Math.ceil(totalDocs / limit) ? page + 1 : null
+    });
   } catch (err) {
     res.status(500).send(err);
   }
