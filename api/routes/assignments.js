@@ -1,10 +1,12 @@
 let Assignment = require('../model/assignment');
 
-// Récupérer tous les assignments (GET)
 async function getAssignments(req, res) {
   try {
     const assignments = await Assignment.find();
-    res.json(assignments);
+    // Convertir chaque objet en JSON, puis les joindre par des virgules
+    const result = assignments.map(a => JSON.stringify(a)).join(',');
+    res.type('application/json'); // préciser le type de réponse
+    res.send(result);
   } catch (err) {
     res.status(500).send(err);
   }
